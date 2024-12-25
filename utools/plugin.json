@@ -1,0 +1,18 @@
+{
+  "main": "./dist/index.html",
+  "logo": "logo.png",
+  "preload": "preload.js",
+  "features": [
+    {
+      "code": "gist",
+      "explain": "github gist 工具",
+      "cmds":["gist"]
+    }
+  ],
+  "development": {
+    "main": "http://localhost:5173"
+  },
+  "pluginSetting": {
+    "single": true
+  }
+}
