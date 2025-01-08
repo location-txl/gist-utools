@@ -107,7 +107,7 @@ import { IconRefresh, IconPlus, IconDelete, IconEdit, IconSettings } from '@arco
 import { Message } from '@arco-design/web-vue'
 import { useSubInput } from '../hooks/SubInput'
 
-const { onChanged } = useSubInput('', '搜索 gist', true);
+const { onChanged, register } = useSubInput('', '搜索 gist', true);
 
 const gists = ref<Gist[]>([])
 const originalGists = ref<Gist[]>([])
@@ -199,6 +199,9 @@ const refreshGists = async () => {
 }
 
 onMounted(async () => {
+  utools.onPluginEnter(() => {
+    register()
+  })
   await refreshGists()
 })
 
