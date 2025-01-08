@@ -9,6 +9,13 @@
       <a-form-item label="描述">
         <a-input v-model="gistForm.description" placeholder="请输入 Gist 描述" />
       </a-form-item>
+      <a-form-item label="公开">
+        <a-switch
+          v-model="gistForm.public"
+          :default-checked="true"
+          :disabled="isEdit"
+        />
+      </a-form-item>
       <div v-for="(file, index) in gistForm.files" :key="index" class="file-item">
         <div class="file-header">
           <h4>{{ file.filename.length > 0 ? file.filename : '文件 ' + (index + 1) }}</h4>
@@ -60,6 +67,7 @@ interface Props {
   editGist?: {
     id: string
     description: string
+    public?: boolean
     files: Record<string, { content: string; filename?: string }>
   }
 }
@@ -69,12 +77,13 @@ const props = withDefaults(defineProps<Props>(), {
   editGist: undefined
 })
 
-const isEdit = computed(() => props.editMode && props.editGist)
+const isEdit = computed(() => props.editMode &&  props.editGist !== undefined )
 
 // 监听编辑模式的 Gist 数据变化
 watch(() => props.editGist, (newGist) => {
   if (newGist) {
     gistForm.description = newGist.description
+    gistForm.public = newGist.public ?? true
     gistForm.files = Object.entries(newGist.files).map(([filename, file]) => ({
       filename,
       content: file.content,
@@ -131,6 +140,7 @@ const getLanguageFromFilename = (filename: string): string => {
 
 const gistForm = reactive({
   description: '',
+  public: true,
   files: [
     {
       filename: '',
@@ -151,6 +161,7 @@ const handleCancel = () => {
 
 const resetForm = () => {
   gistForm.description = ''
+  gistForm.public = true
   gistForm.files = [{
     filename: '',
     content: '',
@@ -187,7 +198,7 @@ const handleCreate = async () => {
 
     await gistApi.createGist({
       description: gistForm.description,
-      public: true,
+      public: gistForm.public,
       files
     })
     Message.success('创建成功')

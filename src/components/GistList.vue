@@ -114,6 +114,7 @@ const expandedKeys = ref<string[]>([])
 const editingGist = ref<{
   id: string
   description: string
+  public: boolean
   files: Record<string, { content: string; filename?: string }>
 } | undefined>(undefined)
 
@@ -239,6 +240,7 @@ const showEditModal = async (gist: Gist) => {
 
     editingGist.value = {
       id: gist.id,
+      public: gist.public,
       description: gist.description,
       files
     }

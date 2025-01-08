@@ -47,6 +47,7 @@ if(token.value){
 
 export interface Gist {
   id: string
+  public: boolean
   description: string
   url: string
   html_url: string
