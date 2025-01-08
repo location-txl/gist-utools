@@ -78,4 +78,25 @@ code {
   white-space: pre-wrap;
   word-wrap: break-word;
 }
+
+:deep(.hljs-params) {
+  color:#24292e;
+  font-weight: 500;
+}
+
+:deep(.hljs-function) {
+  color: #6f42c1;
+  font-weight: bold;
+}
+
+/* :deep(.hljs-title), */
+/* :deep(.hljs-title.function_), */
+:deep(.hljs-title) {
+  color: #0550ae !important;
+  font-weight: bold;
+}
+
+:deep(.hljs-punctuation) {
+  color: #24292e;
+}
 </style> 
