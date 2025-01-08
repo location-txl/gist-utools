@@ -17,6 +17,9 @@
                   {{ gist.description || '未命名 Gist' }}
                 </a-typography-title>
                 <a-tag>{{ formatDate(gist.created_at) }}</a-tag>
+                <a-tag :color="gist.public ? 'green': 'red'">
+                  {{ gist.public ? '公开' : '私有'}}
+                </a-tag>
               </a-space>
             </template>
             <template #extra>
