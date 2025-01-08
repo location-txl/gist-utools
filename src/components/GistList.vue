@@ -13,9 +13,7 @@
           <a-card v-for="gist in gists" :key="gist.id" class="gist-card">
             <template #title>
               <a-space>
-                <a-typography-title :heading="6" style="margin: 0">
-                  {{ gist.description || '未命名 Gist' }}
-                </a-typography-title>
+
                 <a-tag>{{ formatDate(gist.created_at) }}</a-tag>
                 <a-tag :color="gist.public ? 'green': 'red'">
                   {{ gist.public ? '公开' : '私有'}}
@@ -51,6 +49,11 @@
               </a-space>
             </template>
             
+            <template v-if="gist.description">
+              <div class="gist-description">
+                {{ gist.description }}
+              </div>
+            </template>
             <a-collapse @change="handleCollapseChange">
               <a-collapse-item v-for="(file, filename) in gist.files" :key="filename" :header="String(filename)">
                 <template #extra>
@@ -289,5 +292,12 @@ const clearToken = () => {
 
 .float-buttons:hover {
   transform: translateY(-4px);
+}
+
+.gist-description {
+  margin-bottom: 16px;
+  color: var(--color-text-2);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 </style> 
