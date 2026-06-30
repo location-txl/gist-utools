@@ -10,7 +10,7 @@
   
       <a-spin :loading="loading">
         <a-space direction="vertical" :size="16" fill>
-          <a-card v-for="gist in gists" :key="gist.id" class="gist-card">
+          <a-card v-for="gist in gists" :key="gist.id" class="gist-card" :class="{ 'gist-card--pinned': isPinned(gist.id) }">
             <template #title>
               <a-space>
 
@@ -25,6 +25,13 @@
                 <a-link @click="openGist(gist.html_url)" target="_blank">
                   在 GitHub 中查看
                 </a-link>
+                <a-button type="text" @click="togglePin(gist.id)">
+                  <template #icon>
+                    <icon-star-fill v-if="isPinned(gist.id)" style="color: rgb(var(--gold-6))" />
+                    <icon-star v-else />
+                  </template>
+                  {{ isPinned(gist.id) ? '取消置顶' : '置顶' }}
+                </a-button>
                 <a-button type="text" @click="showEditModal(gist)" :loading="editingId === gist.id">
                   <template #icon>
                     <icon-edit />
@@ -98,12 +105,12 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed } from 'vue'
-import { gistApi, type Gist, token } from '../api/gist'
+import { ref, onMounted, watch } from 'vue'
+import { gistApi, type Gist, token, pinnedIds, togglePin, isPinned } from '../api/gist'
 import axios from 'axios'
 import CodeViewer from './CodeViewer.vue'
 import CreateGistModal from './CreateGistModal.vue'
-import { IconRefresh, IconPlus, IconDelete, IconEdit, IconSettings } from '@arco-design/web-vue/es/icon'
+import { IconRefresh, IconPlus, IconDelete, IconEdit, IconSettings, IconStar, IconStarFill } from '@arco-design/web-vue/es/icon'
 import { Message } from '@arco-design/web-vue'
 import { useSubInput } from '../hooks/SubInput'
 
@@ -124,24 +131,37 @@ const editingGist = ref<{
   files: Record<string, { content: string; filename?: string }>
 } | undefined>(undefined)
 
+const sortGists = (list: Gist[]) => {
+  return [...list].sort((a, b) => {
+    const aPinned = isPinned(a.id) ? 0 : 1
+    const bPinned = isPinned(b.id) ? 0 : 1
+    return aPinned - bPinned
+  })
+}
+
 onChanged((searchText: string) => {
   if (!searchText) {
-    gists.value = originalGists.value;
+    gists.value = sortGists(originalGists.value);
     return;
   }
-  
+
   const lowerSearchText = searchText.toLowerCase();
-  gists.value = originalGists.value.filter(gist => {
+  const filtered = originalGists.value.filter(gist => {
     // 搜索 gist 描述
     if (gist.description?.toLowerCase().includes(lowerSearchText)) {
       return true;
     }
     // 搜索文件名
-    return Object.keys(gist.files).some(filename => 
+    return Object.keys(gist.files).some(filename =>
       filename.toLowerCase().includes(lowerSearchText)
     );
   });
+  gists.value = sortGists(filtered);
 });
+
+watch(pinnedIds, () => {
+  gists.value = sortGists(gists.value)
+})
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('zh-CN', {
@@ -179,7 +199,7 @@ const refreshGists = async () => {
   try {
     const fetchedGists = await gistApi.getGists()
     originalGists.value = fetchedGists
-    gists.value = fetchedGists
+    gists.value = sortGists(fetchedGists)
     
     // 重新加载已展开面板的文件内容
     if (expandedKeys.value.length > 0) {
@@ -273,6 +293,10 @@ const clearToken = () => {
 
 .gist-card {
   width: 80vw;
+}
+
+.gist-card--pinned {
+  border-left: 3px solid rgb(var(--primary-6));
 }
 
 :deep(.arco-collapse-item-content-box) {

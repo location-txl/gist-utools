@@ -73,6 +73,29 @@ function updateToken() {
 }
 
 
+// 置顶 Gist 管理
+const PINNED_KEY = 'utools-gist-pinned'
+export const pinnedIds = ref<string[]>(JSON.parse(storage.getItem(PINNED_KEY) ?? '[]'))
+
+watch(pinnedIds, (newIds: string[]) => {
+  try {
+    storage.setItem(PINNED_KEY, JSON.stringify(newIds))
+  } catch (error) {
+    console.error('置顶数据存储失败:', error)
+  }
+})
+
+export const togglePin = (id: string) => {
+  const index = pinnedIds.value.indexOf(id)
+  if (index === -1) {
+    pinnedIds.value = [...pinnedIds.value, id]
+  } else {
+    pinnedIds.value = pinnedIds.value.filter(i => i !== id)
+  }
+}
+
+export const isPinned = (id: string) => pinnedIds.value.includes(id)
+
 export const gistApi = {
   // 获取 Gists 列表
   getGists: async () => {
