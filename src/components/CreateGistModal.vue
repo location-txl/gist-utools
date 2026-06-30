@@ -2,6 +2,7 @@
   <a-modal
     v-model:visible="open"
     :title="isEdit ? '编辑 Gist' : '创建 Gist'"
+    :body-style="{ maxHeight: '60vh', overflowY: 'auto' }"
     @ok="isEdit ? handleEdit() : handleCreate()"
     @cancel="handleCancel"
   >
@@ -47,13 +48,19 @@
           </a-form-item>
         </div>
       </div>
-      <div class="add-file">
+    </a-form>
+    <template #footer>
+      <div class="modal-footer">
         <a-button type="outline" @click="addFile">
           <template #icon><icon-plus /></template>
           添加文件
         </a-button>
+        <div class="modal-footer-right">
+          <a-button @click="handleCancel">取消</a-button>
+          <a-button type="primary" @click="isEdit ? handleEdit() : handleCreate()">确定</a-button>
+        </div>
       </div>
-    </a-form>
+    </template>
   </a-modal>
 </template>
 
@@ -335,7 +342,14 @@ const handleEdit = async () => {
   padding: 0 16px 16px;
 }
 
-.add-file {
-  margin-top: 16px;
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-footer-right {
+  display: flex;
+  gap: 8px;
 }
 </style> 
