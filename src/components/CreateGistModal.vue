@@ -17,28 +17,35 @@
         />
       </a-form-item>
       <div v-for="(file, index) in gistForm.files" :key="index" class="file-item">
-        <div class="file-header">
-          <h4>{{ file.filename.length > 0 ? file.filename : '文件 ' + (index + 1) }}</h4>
-          <a-button 
-            type="text" 
-            status="danger" 
-            @click="removeFile(index)"
+        <div class="file-header" @click="toggleFile(index)" :class="{ clickable: gistForm.files.length > 1 }">
+          <div class="file-header-left">
+            <icon-caret-right v-if="!expandedFiles[index]" class="expand-icon" />
+            <icon-caret-down v-if="expandedFiles[index]" class="expand-icon" />
+            <h4>{{ file.filename.length > 0 ? file.filename : '文件 ' + (index + 1) }}</h4>
+          </div>
+          <a-button
+            type="text"
+            status="danger"
+            size="mini"
+            @click.stop="removeFile(index)"
             v-if="gistForm.files.length > 1"
           >
             <template #icon><icon-delete /></template>
           </a-button>
         </div>
-        <a-form-item label="文件名">
-          <a-input v-model="file.filename" placeholder="example.js" @change="updateFileLanguage(index)" />
-        </a-form-item>
-        <a-form-item label="内容">
-          <code-editor
-            style="width: 100%;"
-            v-model="file.content"
-            :language="file.language"
-            placeholder="请输入文件内容"
-          />
-        </a-form-item>
+        <div v-show="expandedFiles[index]">
+          <a-form-item label="文件名">
+            <a-input v-model="file.filename" placeholder="example.js" @change="updateFileLanguage(index)" />
+          </a-form-item>
+          <a-form-item label="内容">
+            <code-editor
+              style="width: 100%;"
+              v-model="file.content"
+              :language="file.language"
+              placeholder="请输入文件内容"
+            />
+          </a-form-item>
+        </div>
       </div>
       <div class="add-file">
         <a-button type="outline" @click="addFile">
@@ -53,6 +60,7 @@
 <script lang="ts" setup>
 import { ref, reactive, watch, computed } from 'vue'
 import { Message } from '@arco-design/web-vue'
+import { IconCaretRight, IconCaretDown, IconDelete, IconPlus } from '@arco-design/web-vue/es/icon'
 import { gistApi } from '../api/gist'
 import CodeEditor from './CodeEditor.vue'
 
@@ -89,6 +97,8 @@ watch(() => props.editGist, (newGist) => {
       content: file.content,
       language: getLanguageFromFilename(filename)
     }))
+    // 多个文件全部折叠，单个文件展开
+    updateExpandedState(gistForm.files.length)
   }
 }, { immediate: true })
 
@@ -150,6 +160,23 @@ const gistForm = reactive({
   ] as GistFile[]
 })
 
+// 每个文件的展开/折叠状态
+const expandedFiles = ref<boolean[]>([true])
+
+// 根据文件数量设置初始展开状态
+const updateExpandedState = (fileCount: number) => {
+  if (fileCount <= 1) {
+    expandedFiles.value = [true]
+  } else {
+    expandedFiles.value = new Array(fileCount).fill(false)
+  }
+}
+
+const toggleFile = (index: number) => {
+  if (gistForm.files.length <= 1) return // 单文件不允许折叠
+  expandedFiles.value[index] = !expandedFiles.value[index]
+}
+
 const updateFileLanguage = (index: number) => {
   const file = gistForm.files[index]
   file.language = getLanguageFromFilename(file.filename)
@@ -167,6 +194,7 @@ const resetForm = () => {
     content: '',
     language: 'plaintext'
   }]
+  expandedFiles.value = [true]
 }
 
 const addFile = () => {
@@ -175,10 +203,17 @@ const addFile = () => {
     content: '',
     language: 'plaintext'
   })
+  // 新增的文件保持折叠
+  expandedFiles.value.push(false)
 }
 
 const removeFile = (index: number) => {
   gistForm.files.splice(index, 1)
+  expandedFiles.value.splice(index, 1)
+  // 只剩一个文件时自动展开
+  if (gistForm.files.length === 1) {
+    expandedFiles.value = [true]
+  }
 }
 
 const handleCreate = async () => {
@@ -249,19 +284,55 @@ const handleEdit = async () => {
 .file-item {
   border: 1px solid var(--color-neutral-3);
   border-radius: 4px;
-  padding: 16px;
-  margin-bottom: 16px;
+  padding: 0;
+  margin-bottom: 12px;
+  overflow: hidden;
 }
 
 .file-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  padding: 10px 16px;
+  background: var(--color-neutral-1);
+  user-select: none;
+}
+
+.file-header.clickable {
+  cursor: pointer;
+}
+
+.file-header.clickable:hover {
+  background: var(--color-neutral-2);
+}
+
+.file-header-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .file-header h4 {
   margin: 0;
+  font-size: 14px;
+}
+
+.expand-icon {
+  font-size: 12px;
+  color: var(--color-text-3);
+  flex-shrink: 0;
+}
+
+.file-item :deep(.arco-form-item) {
+  margin-bottom: 12px;
+}
+
+.file-item :deep(.arco-form-item:last-child) {
+  margin-bottom: 0;
+}
+
+.file-item > div:not(.file-header) {
+  padding: 0 16px 16px;
 }
 
 .add-file {
