@@ -210,8 +210,8 @@ const addFile = () => {
     content: '',
     language: 'plaintext'
   })
-  // 新增的文件保持折叠
-  expandedFiles.value.push(false)
+  // 新增的文件默认展开，方便用户直接编辑
+  expandedFiles.value.push(true)
 }
 
 const removeFile = (index: number) => {
