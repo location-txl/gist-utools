@@ -75,7 +75,16 @@ function updateToken() {
 
 // 置顶 Gist 管理
 const PINNED_KEY = 'utools-gist-pinned'
-export const pinnedIds = ref<string[]>(JSON.parse(storage.getItem(PINNED_KEY) ?? '[]'))
+const loadPinnedIds = (): string[] => {
+  try {
+    const parsed = JSON.parse(storage.getItem(PINNED_KEY) ?? '[]')
+    return Array.isArray(parsed) ? parsed : []
+  } catch (error) {
+    console.error('置顶数据读取失败:', error)
+    return []
+  }
+}
+export const pinnedIds = ref<string[]>(loadPinnedIds())
 
 watch(pinnedIds, (newIds: string[]) => {
   try {
